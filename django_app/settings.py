@@ -103,7 +103,8 @@ USE_TZ = True
 
 
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [Path(BASE_DIR) / 'static']
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -111,3 +112,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STRIPE_PUBLISHABLE_KEY = env('STRIPE_PUBLISHABLE_KEY')
 STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY')
+
+MY_DOMAIN = 'http://localhost:8000/'
