@@ -1,26 +1,53 @@
+import stripe
 from django.conf import settings
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404
 from django.http.response import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView
 
-import stripe
+from .models import Item
 
 
-def index(request):
-    return render(request, 'index.html')
+class HomePageView(TemplateView):
+    """Главная страница со всеми объектами."""
+
+    template_name = 'main/home.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['items'] = Item.objects.all()
+        return context
 
 
-def success(request):
-    return render(request, 'success.html')
+class ItemPageView(TemplateView):
+    """Страница с конкретным объектом."""
+
+    template_name = 'main/product_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        item_id = self.kwargs.get('pk')
+        item = get_object_or_404(Item, pk=item_id)
+        context['item'] = item
+        return context
 
 
-def cancel(request):
-    return render(request, 'cancelled.html')
+class SuccessView(TemplateView):
+    """Успешная оплата."""
+
+    template_name = 'main/success.html'
+
+
+class CancelView(TemplateView):
+    """Отмена оплаты."""
+
+    template_name = 'main/cancelled.html'
 
 
 @csrf_exempt
 def stripe_config(request):
+    """Функция для получения токена."""
+
     if request.method == 'GET':
         stripe_config = {'publicKey': settings.STRIPE_PUBLISHABLE_KEY}
         return JsonResponse(stripe_config, safe=False)

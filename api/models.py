@@ -29,7 +29,7 @@ class Tax(models.Model):
     class Meta:
         verbose_name = 'tax'
         verbose_name_plural = 'taxes'
-    
+
 
 class Order(models.Model):
     items = models.ManyToManyField(Item)
