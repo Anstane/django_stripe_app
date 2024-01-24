@@ -7,7 +7,10 @@ from .views import (
     CancelView,
     CreateCheckoutSessionView,
     stripe_config,
-    stripe_webhook
+    stripe_webhook,
+    AddToCartView,
+    CartView,
+    clear_cart
 )
 
 
@@ -15,8 +18,11 @@ urlpatterns = [
     path('', HomePageView.as_view(), name='home'),
     path('success/', SuccessView.as_view(), name='success'),
     path('cancelled/',  CancelView.as_view(), name='cancel'),
+    path('item/<int:pk>/', ItemPageView.as_view(), name='item_page'),
+    path('buy/<int:pk>/', CreateCheckoutSessionView.as_view(), name='create-checkout-session'),
     path('config/', stripe_config),
     path('webhook/', stripe_webhook),
-    path('item/<int:pk>/', ItemPageView.as_view(), name='item_page'),
-    path('create-checkout-session/<int:pk>/', CreateCheckoutSessionView.as_view(), name='create-checkout-session')
+    path('add-to-cart/<int:item_id>/', AddToCartView.as_view(), name='add_to_cart'),
+    path('clear-cart/', clear_cart, name='clear_cart'),
+    path('cart/', CartView.as_view(), name='cart'),
 ]

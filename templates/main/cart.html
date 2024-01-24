@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+  <div class="container mt-5">
+    <h1>Ваша корзина покупок</h1>
+    {% if cart.orderitem_set.all %}
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Quantity</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order_item in cart.orderitem_set.all %}
+            <tr>
+              <td>{{ order_item.item.name }}</td>
+              <td>{{ order_item.quantity }}</td>
+              <td>₽{{ order_item.item.get_display_price }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <p>Total: ₽{{ cart.calculate_total }}</p>
+        <button type="submit" class="btn btn-primary">Proceed to Checkout</button>
+      </form>
+      <form method="post" action="{% url 'clear_cart' %}">
+        {% csrf_token %}
+        <button type="submit">Очистить корзину</button>
+      </form>
+    {% else %}
+      <p>Ваша корзина пуста.</p>
+    {% endif %}
+  </div>
+{% endblock %}

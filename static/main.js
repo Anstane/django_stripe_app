@@ -8,7 +8,7 @@ fetch("/config/")
   const productId = buyNowBtn.getAttribute("data-product-id")
 
   buyNowBtn.addEventListener("click", () => {
-    fetch(`/create-checkout-session/${productId}/`)
+    fetch(`/buy/${productId}/`)
     .then((result) => { return result.json(); })
     .then((data) => {
       return stripe.redirectToCheckout({ sessionId: data.sessionId })

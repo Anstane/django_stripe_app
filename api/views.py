@@ -1,11 +1,11 @@
 import stripe
 from django.conf import settings
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.http.response import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView, View
 
-from .models import Item
+from .models import Item, Order, OrderItem
 
 
 class HomePageView(TemplateView):
@@ -53,30 +53,9 @@ def stripe_config(request):
         return JsonResponse(stripe_config, safe=False)
 
 
-# @csrf_exempt
-# def create_checkout_session(request):
-#     if request.method == 'GET':
-#         stripe.api_key = settings.STRIPE_SECRET_KEY
-#         domain_url = settings.MY_DOMAIN
-#         try:
-#             checkout_session = stripe.checkout.Session.create(
-#                 payment_method_types=['card'],
-#                 mode='payment',
-#                 success_url=domain_url + 'success?session_id={CHECKOUT_SESSION_ID}',
-#                 cancel_url=domain_url + 'cancelled/',
-#                 line_items=[
-#                     {
-#                         'price': 'price_1OaE8AG2xvC1lYnurBe51MIP',
-#                         'quantity': 1,
-#                     },
-#                 ],
-#             )
-#             return JsonResponse({'sessionId': checkout_session['id']})
-#         except Exception as e:
-#             return JsonResponse({'error': str(e)})
-
-
 class CreateCheckoutSessionView(View):
+    """Оплата товара."""
+
     def get(self, request, *args, **kwargs):
         stripe.api_key = settings.STRIPE_SECRET_KEY
         item_id = self.kwargs["pk"]
@@ -121,3 +100,40 @@ def stripe_webhook(request):
         print("Payment was successful.")
 
     return HttpResponse(status=200)
+
+
+class CartView(TemplateView):
+    """Вью для корзины."""
+
+    template_name = 'main/cart.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        order, created = Order.objects.get_or_create()
+        context['cart'] = order
+        return context
+
+
+class AddToCartView(View):
+    """Добавление предмета в корзину."""
+
+    def post(self, request, item_id, *args, **kwargs):
+        item = Item.objects.get(id=item_id)
+        order, created = Order.objects.get_or_create()
+
+        order_item, created = OrderItem.objects.get_or_create(
+            order=order,
+            item=item
+        )
+
+        order_item.quantity += 1
+        order_item.save()
+
+        return JsonResponse({'status': 'success'})
+
+
+def clear_cart(request):
+    """Чистка корзины."""
+
+    OrderItem.objects.all().delete()
+    return redirect('cart')

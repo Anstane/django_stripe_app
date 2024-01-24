@@ -1,9 +1,9 @@
 from django.contrib import admin
 
-from . import models
+from .models import (Item, Order)
 
 
-@admin.register(models.Item)
+@admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
     list_display = (
         'name',
@@ -13,27 +13,37 @@ class ItemAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(models.Discount)
-class DiscountAdmin(admin.ModelAdmin):
-    list_display = (
-        'amount',
-    )
-
-
-@admin.register(models.Tax)
-class TaxAdmin(admin.ModelAdmin):
-    list_display = (
-        'rate',
-    )
-
-
-@admin.register(models.Order)
+@admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'display_items',
-        'discount',
-        'tax',
+        'total_amount',
     )
+    list_select_related = ('items',)
 
     def display_items(self, obj):
-        return ", ".join([item.name for item in obj.items.all()])
+        items_list = [f"{item.quantity} x {item.item.name}" for item in obj.orderitem_set.all()]
+        return ", ".join(items_list)
+
+    display_items.short_description = 'Items'
+
+    def total_amount(self, obj):
+        return obj.calculate_total()
+
+    total_amount.short_description = 'Total Amount'
+    total_amount.admin_order_field = 'calculate_total'
+
+
+# @admin.register(models.Discount)
+# class DiscountAdmin(admin.ModelAdmin):
+#     list_display = (
+#         'amount',
+#     )
+
+
+# @admin.register(models.Tax)
+# class TaxAdmin(admin.ModelAdmin):
+#     list_display = (
+#         'rate',
+#     )

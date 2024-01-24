@@ -4,6 +4,10 @@ body {
   padding-bottom: 1.5rem;
 }
 
+#addToCartForm {
+  margin-top: 20px; /* Настройте отступ сверху по вашему выбору */
+}
+
 /* Everything but the jumbotron gets side spacing for mobile first views */
 .header,
 .marketing,
