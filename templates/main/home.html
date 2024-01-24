@@ -8,7 +8,7 @@
                     <div class="card-body">
                         <h5 class="card-title">{{ item.name }}</h5>
                         <p class="card-text">{{ item.description }}</p>
-                        <p class="card-text card-price" style="white-space: nowrap;">Price: ${{ item.price }}</p>
+                        <p class="card-text card-price" style="white-space: nowrap;">Цена: ₽{{ item.get_display_price }}</p>
                     </div>
                     <div class="mt-auto mb-3 d-flex justify-content-center">
                         <a href="{% url 'item_page' pk=item.pk %}" class="btn btn-primary">Подробнее</a>

@@ -3,7 +3,7 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.http.response import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic.base import TemplateView
+from django.views.generic.base import TemplateView, View
 
 from .models import Item
 
@@ -53,20 +53,44 @@ def stripe_config(request):
         return JsonResponse(stripe_config, safe=False)
 
 
-@csrf_exempt
-def create_checkout_session(request):
-    if request.method == 'GET':
+# @csrf_exempt
+# def create_checkout_session(request):
+#     if request.method == 'GET':
+#         stripe.api_key = settings.STRIPE_SECRET_KEY
+#         domain_url = settings.MY_DOMAIN
+#         try:
+#             checkout_session = stripe.checkout.Session.create(
+#                 payment_method_types=['card'],
+#                 mode='payment',
+#                 success_url=domain_url + 'success?session_id={CHECKOUT_SESSION_ID}',
+#                 cancel_url=domain_url + 'cancelled/',
+#                 line_items=[
+#                     {
+#                         'price': 'price_1OaE8AG2xvC1lYnurBe51MIP',
+#                         'quantity': 1,
+#                     },
+#                 ],
+#             )
+#             return JsonResponse({'sessionId': checkout_session['id']})
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)})
+
+
+class CreateCheckoutSessionView(View):
+    def get(self, request, *args, **kwargs):
         stripe.api_key = settings.STRIPE_SECRET_KEY
-        domain_url = settings.MY_DOMAIN
+        item_id = self.kwargs["pk"]
+        item = Item.objects.get(id=item_id)
         try:
+            domain_url = settings.MY_DOMAIN
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 mode='payment',
-                success_url=domain_url + 'success?session_id={CHECKOUT_SESSION_ID}',
-                cancel_url=domain_url + 'cancelled/',
+                success_url=domain_url + '/success/',
+                cancel_url=domain_url + '/cancelled/',
                 line_items=[
                     {
-                        'price': 'price_1OaE8AG2xvC1lYnurBe51MIP',
+                        'price': item.price_stripe_id,
                         'quantity': 1,
                     },
                 ],

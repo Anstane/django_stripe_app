@@ -9,6 +9,7 @@ class ItemAdmin(admin.ModelAdmin):
         'name',
         'description',
         'price',
+        'price_stripe_id',
     )
 
 
