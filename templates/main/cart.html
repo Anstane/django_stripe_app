@@ -3,31 +3,30 @@
 {% block content %}
   <div class="container mt-5">
     <h1>Ваша корзина покупок</h1>
-    {% if cart.orderitem_set.all %}
+    {% if cart %}
       <table class="table table-bordered">
         <thead>
           <tr>
-            <th>Item</th>
-            <th>Quantity</th>
-            <th>Price</th>
+            <th>Товар</th>
+            <th>Количество</th>
+            <th>Цена</th>
           </tr>
         </thead>
         <tbody>
-          {% for order_item in cart.orderitem_set.all %}
+          {% for item in cart %}
             <tr>
-              <td>{{ order_item.item.name }}</td>
-              <td>{{ order_item.quantity }}</td>
-              <td>₽{{ order_item.item.get_display_price }}</td>
+              <td>{{ item.item.name }}</td>
+              <td>{{ item.quantity }}</td>
+              <td>₽{{ item.item.get_display_price }}</td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
-      <p>Total: ₽{{ cart.calculate_total }}</p>
-        <button type="submit" class="btn btn-primary">Proceed to Checkout</button>
-      </form>
-      <form method="post" action="{% url 'clear_cart' %}">
+      <p>Общая сумма: ₽{{ subtotal }}</p>
+      <button type="submit" class="btn btn-primary">Перейти к оплате</button>
+      <form method="post" action="{% url 'clear_cart' %}" class="mt-2 mb-2">
         {% csrf_token %}
-        <button type="submit">Очистить корзину</button>
+        <button type="submit" class="btn btn-danger">Очистить корзину</button>
       </form>
     {% else %}
       <p>Ваша корзина пуста.</p>

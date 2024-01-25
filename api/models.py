@@ -19,39 +19,39 @@ class Item(models.Model):
         ordering = ('name',)
 
 
-class Order(models.Model):
-    items = models.ManyToManyField(Item, through='OrderItem')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def calculate_total(self):
-        return sum(item.price for item in self.items.all())
-
-    def __str__(self):
-        return f"Order {self.id}"
-
-
-class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    item = models.ForeignKey(Item, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
-
-    def subtotal(self):
-        return self.item.price * self.quantity
-
-    def __str__(self):
-        return f"{self.quantity} x {self.item.name} in Order {self.order.id}"
-
-
 # class Order(models.Model):
-#     item = models.ForeignKey('Item', on_delete=models.CASCADE)
+#     items = models.ManyToManyField(Item, through='OrderItem')
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
+
+#     def calculate_total(self):
+#         return sum(item.price for item in self.items.all())
+
+#     def __str__(self):
+#         return f"Order {self.id}"
+
+
+# class OrderItem(models.Model):
+#     order = models.ForeignKey(Order, on_delete=models.CASCADE)
+#     item = models.ForeignKey(Item, on_delete=models.CASCADE)
 #     quantity = models.PositiveIntegerField(default=1)
 
 #     def subtotal(self):
 #         return self.item.price * self.quantity
 
 #     def __str__(self):
-#         return f'{self.quantity} x {self.item.name}'
+#         return f"{self.quantity} x {self.item.name} in Order {self.order.id}"
+
+
+class Order(models.Model):
+    item = models.ForeignKey('Item', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+
+    def subtotal(self):
+        return self.item.price * self.quantity
+
+    def __str__(self):
+        return f'{self.quantity} x {self.item.name}'
 
 
 # class Discount(models.Model):

@@ -5,7 +5,7 @@ from django.http.response import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView, View
 
-from .models import Item, Order, OrderItem
+from .models import Item, Order
 
 
 class HomePageView(TemplateView):
@@ -109,25 +109,28 @@ class CartView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        order, created = Order.objects.get_or_create()
-        context['cart'] = order
+        cart_items = Order.objects.all()
+        subtotal = "{0:.2f}".format(
+            sum(item.subtotal() for item in cart_items) / 100
+        )
+        context['cart'] = cart_items
+        context['subtotal'] = subtotal
         return context
 
 
 class AddToCartView(View):
     """Добавление предмета в корзину."""
 
-    def post(self, request, item_id, *args, **kwargs):
-        item = Item.objects.get(id=item_id)
-        order, created = Order.objects.get_or_create()
+    def post(self, request, item_id):
+        item = get_object_or_404(Item, pk=item_id)
+        cart_item = Order.objects.filter(item=item).first()
 
-        order_item, created = OrderItem.objects.get_or_create(
-            order=order,
-            item=item
-        )
+        if cart_item:
+            cart_item.quantity += 1
+            cart_item.save()
 
-        order_item.quantity += 1
-        order_item.save()
+        else:
+            Order.objects.create(item=item, quantity=1)
 
         return JsonResponse({'status': 'success'})
 
@@ -135,5 +138,5 @@ class AddToCartView(View):
 def clear_cart(request):
     """Чистка корзины."""
 
-    OrderItem.objects.all().delete()
+    Order.objects.all().delete()
     return redirect('cart')
