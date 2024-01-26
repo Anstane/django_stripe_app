@@ -44,64 +44,6 @@ class CancelView(TemplateView):
     template_name = 'main/cancelled.html'
 
 
-@csrf_exempt
-def stripe_config(request):
-    """Функция для получения токена."""
-
-    if request.method == 'GET':
-        stripe_config = {'publicKey': settings.STRIPE_PUBLISHABLE_KEY}
-        return JsonResponse(stripe_config, safe=False)
-
-
-class CreateCheckoutSessionView(View):
-    """Оплата товара."""
-
-    def get(self, request, *args, **kwargs):
-        stripe.api_key = settings.STRIPE_SECRET_KEY
-        item_id = self.kwargs["pk"]
-        item = Item.objects.get(id=item_id)
-        try:
-            domain_url = settings.MY_DOMAIN
-            checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                mode='payment',
-                success_url=domain_url + '/success/',
-                cancel_url=domain_url + '/cancelled/',
-                line_items=[
-                    {
-                        'price': item.price_stripe_id,
-                        'quantity': 1,
-                    },
-                ],
-            )
-            return JsonResponse({'sessionId': checkout_session['id']})
-        except Exception as e:
-            return JsonResponse({'error': str(e)})
-
-
-@csrf_exempt
-def stripe_webhook(request):
-    stripe.api_key = settings.STRIPE_SECRET_KEY
-    endpoint_secret = settings.STRIPE_ENDPOINT_SECRET
-    payload = request.body
-    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
-    event = None
-
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret
-        )
-    except ValueError as e:
-        return HttpResponse(status=400)
-    except stripe.error.SignatureVerificationError as e:
-        return HttpResponse(status=400)
-
-    if event['type'] == 'checkout.session.completed':
-        print("Payment was successful.")
-
-    return HttpResponse(status=200)
-
-
 class CartView(TemplateView):
     """Вью для корзины."""
 
@@ -140,3 +82,102 @@ def clear_cart(request):
 
     Order.objects.all().delete()
     return redirect('cart')
+
+
+@csrf_exempt
+def stripe_config(request):
+    """Функция для получения токена."""
+
+    if request.method == 'GET':
+        stripe_config = {'publicKey': settings.STRIPE_PUBLISHABLE_KEY}
+        return JsonResponse(stripe_config, safe=False)
+
+
+class CheckoutMixin:
+    """Миксин для оплаты через Stripe."""
+
+    def create_checkout_session(self, items):
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+
+        try:
+            domain_url = settings.MY_DOMAIN
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                mode='payment',
+                success_url=domain_url + 'success/',
+                cancel_url=domain_url + 'cancelled/',
+                line_items=items,
+            )
+            return {'sessionId': checkout_session['id']}
+        except Exception as e:
+            return {'error': str(e)}
+
+
+class CreateCheckoutSessionView(View, CheckoutMixin):
+    """Оплата товара."""
+
+    def get(self, request, *args, **kwargs):
+        item_id = self.kwargs["pk"]
+        item = Item.objects.get(id=item_id)
+
+        item_line_item = {
+            'price_data': {
+                'currency': 'rub',
+                'product_data': {
+                    'name': item.name,
+                },
+                'unit_amount': item.price,
+            },
+            'quantity': 1,
+        }
+
+        return JsonResponse(self.create_checkout_session([item_line_item]))
+
+
+class CreateCheckoutCartSessionView(View, CheckoutMixin):
+    """Оплата целой корзины."""
+
+    def get(self, request, *args, **kwargs):
+        objects = Order.objects.all()
+        products = []
+
+        for obj in objects:
+            product = obj.item
+
+            product_line_item = {
+                'price_data': {
+                    'currency': 'rub',
+                    'product_data': {
+                        'name': product.name,
+                    },
+                    'unit_amount': product.price,
+                },
+                'quantity': obj.quantity
+            }
+
+            products.append(product_line_item)
+
+        return JsonResponse(self.create_checkout_session(products))
+
+
+@csrf_exempt
+def stripe_webhook(request):
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+    endpoint_secret = settings.STRIPE_ENDPOINT_SECRET
+    payload = request.body
+    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    event = None
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError as e:
+        return HttpResponse(status=400)
+
+    if event['type'] == 'checkout.session.completed':
+        print("Payment was successful.")
+
+    return HttpResponse(status=200)

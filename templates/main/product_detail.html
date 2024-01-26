@@ -5,13 +5,13 @@
   <h1>{{ item.name }}</h1>
   <p>{{ item.description }}</p>
   <p>Цена: ₽{{ item.get_display_price }}</p>
-  <a href="#" id="buy_now_btn" data-product-id="{{ item.id }}" class="btn btn-primary">Купить</a>
+  <a href="#" id="buy_now_btn" data-checkout-type="single" data-product-id="{{ item.id }}" class="btn btn-primary">Купить</a>
   <form id="addToCartForm" method="post" action="{% url 'add_to_cart' item.id %}" data-url="{% url 'add_to_cart' item.id %}">
     {% csrf_token %}
     <button type="submit" id="addToCartBtn">Добавить в корзину</button>
   </form>
 </div>
 <script src="https://js.stripe.com/v3/"></script>
-<script src="{% static 'main.js' %}"></script>
-<script src="{% static 'addToCart.js' %}"></script>
+<script src="{% static 'js/main.js' %}"></script>
+<script src="{% static 'js/addToCart.js' %}"></script>
 {% endblock %}

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import (Item, Order)
+from .models import Item, Order
 
 
 @admin.register(Item)
@@ -9,7 +9,6 @@ class ItemAdmin(admin.ModelAdmin):
         'name',
         'description',
         'price',
-        'price_stripe_id',
     )
 
 
@@ -20,19 +19,15 @@ class OrderAdmin(admin.ModelAdmin):
         'display_items',
         'total_amount',
     )
-    list_select_related = ('items',)
 
     def display_items(self, obj):
-        items_list = [f"{item.quantity} x {item.item.name}" for item in obj.orderitem_set.all()]
+        items_list = [f"{obj.quantity} x {obj.item.name}"]
         return ", ".join(items_list)
 
-    display_items.short_description = 'Items'
-
     def total_amount(self, obj):
-        return obj.calculate_total()
+        total_price = obj.item.price * obj.quantity
+        return "{0:.2f}".format(total_price / 100)
 
-    total_amount.short_description = 'Total Amount'
-    total_amount.admin_order_field = 'calculate_total'
 
 
 # @admin.register(models.Discount)

@@ -23,7 +23,7 @@
         </tbody>
       </table>
       <p>Общая сумма: ₽{{ subtotal }}</p>
-      <button type="submit" class="btn btn-primary">Перейти к оплате</button>
+      <a href="#" id="buy_now_btn" data-checkout-type="cart" class="btn btn-primary">Перейти к оплате</a>
       <form method="post" action="{% url 'clear_cart' %}" class="mt-2 mb-2">
         {% csrf_token %}
         <button type="submit" class="btn btn-danger">Очистить корзину</button>
@@ -32,4 +32,6 @@
       <p>Ваша корзина пуста.</p>
     {% endif %}
   </div>
+  <script src="https://js.stripe.com/v3/"></script>
+  <script src="{% static 'js/main.js' %}"></script>
 {% endblock %}
