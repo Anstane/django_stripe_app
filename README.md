@@ -44,4 +44,4 @@ Python 3.11 | Django 5.0.1 | SQLite
 ## Автор
 
 [Михаил Московкин](https://github.com/Anstane)
-
+\\
